@@ -6,3 +6,5 @@ internal class Program
         taskArithServer.Wait();
     }
 }
+
+# สำหรับ SERVER
