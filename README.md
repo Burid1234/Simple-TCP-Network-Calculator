@@ -1,38 +1,56 @@
-# Simple-TCP-Network-Calculator
+##  วิธีการรันโปรแกรม (How to Run)
 
-# โปรเจกต์เครื่องคิดเลข Client-Server ผ่านระบบเครือข่าย (Basic TCP Socket Network Calculator)
+โปรเจกต์นี้จำเป็นต้องรันโปรแกรม 2 ครั้ง (บน Terminal 2 หน้าต่าง หรือบนคอมพิวเตอร์ 2 เครื่อง)
 
-โปรเจกต์นี้คือการสาธิตการทำงานของระบบ Client-Server เบื้องต้น ถูกสร้างขึ้นเพื่อศึกษาและทำความเข้าใจหลักการของ Network Programming (การเขียนโปรแกรมเครือข่าย) โดยใช้ภาษา C# และ .NET Sockets โดยมีเป้าหมายในการสร้างโปรแกรมสองส่วนที่สามารถสื่อสารโต้ตอบกันได้ผ่านเครือข่าย TCP/IP
+### A: การทดสอบบนเครื่องเดียว (Localhost)
 
-เป้าหมายของโปรเจกต์นี้คือการสร้างแอปพลิเคชันที่:
-* **Client (ผู้ใช้บริการ)** สามารถป้อนสมการคณิตศาสตร์ (เช่น `10 + 5 * 2`) ผ่านหน้าจอ Terminal
-* **Server (ผู้ให้บริการ)** รับสมการนั้นมาประมวลผล (คำนวณ) และส่ง "คำตอบ" กลับไป
-* **Client** รับคำตอบและแสดงผลลัพธ์นั้นบนหน้าจอ Terminal
+1.  **แก้ไข `Program.cs`:**
+    * ตรวจสอบให้แน่ใจว่าไฟล์ `Program.cs` มีโค้ดสำหรับรันทั้ง Server และ Client
+        ```csharp
+        var taskArithServer = Task3.SimpleArithServer();
+        var taskArithClient = Task3.SimpleArithClient();
+        taskArithClient.Wait();
+        taskArithServer.Wait();
+        ```
+2.  **แก้ไข `Task3.cs`:**
+    * ใน `SimpleArithServer()` และ `SimpleArithClient()` ต้องตั้งค่า IP เป็น `IPAddress.Parse("127.0.0.1")`
+3.  **รันโปรแกรม:**
+    * เปิด Terminal ที่โฟลเดอร์โปรเจกต์ แล้วสั่ง:
+        ```bash
+        dotnet run
+        ```
+    * โปรแกรมจะทำหน้าที่เป็นทั้ง Server และ Client ในหน้าต่างเดียว
 
----
+### B: การทดสอบบนคอมพิวเตอร์ 2 เครื่อง (ในวง LAN)
 
-## คุณสมบัติหลัก (Features)
+#### บนเครื่อง Server (เช่น Mac)
 
-* **สถาปัตยกรรม Client-Server:** แสดงการแบ่งหน้าที่อย่างชัดเจนระหว่างผู้ขอ (Client) และผู้ให้บริการ (Server)
-* **การสื่อสารแบบ TCP/IP:** ใช้ `System.Net.Sockets` ซึ่งเป็นการสื่อสารระดับล่าง (Low-level) ที่รับประกันความถูกต้องของข้อมูล
-* **การประมวลผลฝั่ง Server:** Client ไม่ได้คำนวณเอง แต่ส่ง "โจทย์" ไปให้ Server ประมวลผลด้วยเมธอด `DataTable.Compute()`
-* **การทำงานแบบ Cross-Platform:** โค้ดนี้สามารถรันได้ทั้งบน Windows (PC) และ macOS (Mac) และสามารถสื่อสารข้ามแพลตฟอร์มกันได้
+1.  **แก้ไข `Task3.cs` (Server):**
+    * ในเมธอด `SimpleArithServer()` เปลี่ยน IP เป็น `IPAddress.Any`
+2.  **แก้ไข `Program.cs` (Server):**
+    * คอมเมนต์ส่วน Client ออก ให้รันเฉพาะ Server:
+        ```csharp
+        var taskArithServer = Task3.SimpleArithServer();
+        taskArithServer.Wait();
+        // var taskArithClient = Task3.SimpleArithClient();
+        // taskArithClient.Wait();
+        ```
+3.  **รัน Server:**
+    * `dotnet run`
+    * (อย่าลืมตรวจสอบ IP Address ของเครื่องนี้ และตั้งค่า Firewall ให้อนุญาต Port 11000)
 
-## หลักการทำงาน (How It Works)
+#### บนเครื่อง Client (เช่น PC)
 
-โปรเจกต์นี้แบ่งการทำงานออกเป็นสองส่วนหลักที่ทำงานพร้อมกัน:
-
-### 1. ฝั่ง Server (ผู้ประมวลผล)
-
-1.  **การรอรับการเชื่อมต่อ:** Server จะเริ่มทำงานก่อน โดยจะเปิด Port (ในที่นี้คือ Port 11000) และตั้งค่า `IPAddress.Any` (0.0.0.0) เพื่อรอรับการเชื่อมต่อจาก Client *ทุกเครื่อง* ในเครือข่าย (หรือ `127.0.0.1` หากทดสอบในเครื่องเดียว)
-2.  **การรับข้อมูล:** เมื่อ Client เชื่อมต่อเข้ามา Server จะเข้าสู่ Loop การรอรับข้อมูล (สมการ)
-3.  **การประมวลผล:** เมื่อได้รับข้อความ (String) ที่เป็นสมการ Server จะใช้ `DataTable.Compute()` เพื่อคำนวณหาผลลัพธ์
-4.  **การส่งคำตอบ:** Server จะส่งผลลัพธ์ (ที่ถูกแปลงกลับเป็น String) กลับไปยัง Client ที่เชื่อมต่ออยู่ พร้อมกับแท็ก `<ACK>` เพื่อยืนยันการสิ้นสุดข้อความ
-
-### 2. ฝั่ง Client (ผู้ป้อนข้อมูล)
-
-1.  **การเชื่อมต่อ:** Client จะเริ่มทำงานโดยระบุ "ที่อยู่" (IP Address) ของ Server ที่ต้องการเชื่อมต่อ (เช่น `127.0.0.1` หรือ IP ของเครื่อง Server ในวง LAN)
-2.  **การป้อนข้อมูล:** ผู้ใช้สามารถพิมพ์สมการคณิตศาสตร์ผ่านหน้าจอ Terminal
-3.  **การส่งข้อมูล:** Client จะส่งข้อความ (String) ที่ผู้ใช้พิมพ์ ไปยัง Server
-4.  **การรอรับคำตอบ:** หลังจากส่งแล้ว Client จะหยุดรอ (await) จนกว่าจะได้รับข้อความตอบกลับจาก Server
-5.  **การแสดงผล:** Client "แกะ" คำตอบที่ได้ (โดยตัดแท็ก `<ACK>` ออก) และแสดงผลลัพธ์สุดท้ายบนหน้าจอ Terminal
+1.  **แก้ไข `Task3.cs` (Client):**
+    * ในเมธอด `SimpleArithClient()` เปลี่ยน IP เป็น IP Address จริงของเครื่อง Server (เช่น `IPAddress.Parse("192.168.1.10")`)
+2.  **แก้ไข `Program.cs` (Client):**
+    * คอมเมนต์ส่วน Server ออก ให้รันเฉพาะ Client:
+        ```csharp
+        // var taskArithServer = Task3.SimpleArithServer();
+        // taskArithServer.Wait();
+        var taskArithClient = Task3.SimpleArithClient();
+        taskArithClient.Wait();
+        ```
+3.  **รัน Client:**
+    * `dotnet run`
+    * คุณจะสามารถป้อนสมการบน Client (PC) และเห็นคำตอบที่ถูกส่งมาจาก Server (Mac) ได้
